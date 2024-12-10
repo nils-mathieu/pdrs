@@ -1,0 +1,25 @@
+[package]
+name = "rpds"
+edition = "2021"
+publish = false
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+hyper = { version = "1", features = ["client", "server", "http1", "http2"] }
+hyper-util = { version = "0.1", features = [
+    "client",
+    "http1",
+    "http2",
+    "server",
+    "tokio",
+] }
+http-body-util = "0.1"
+tracing = "0.1"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+futures = { version = "0.3", default-features = false, features = [
+    "alloc",
+    "std",
+] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["alloc", "ansi", "fmt", "std"] }
+memchr = "2.7.4"
