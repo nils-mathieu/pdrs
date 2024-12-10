@@ -50,6 +50,39 @@ pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
                 .handle(req)
                 .await
         }
+        b"/com.atproto.admin.getSubjectStatus" => {
+            self::atproto::admin_getSubjectStatus::route()
+                .handle(req)
+                .await
+        }
+        b"/com.atproto.admin.searchAccounts" => {
+            self::atproto::admin_searchAccounts::route()
+                .handle(req)
+                .await
+        }
+        b"/com.atproto.admin.sendEmail" => {
+            self::atproto::admin_sendEmail::route().handle(req).await
+        }
+        b"/com.atproto.admin.updateAccountEmail" => {
+            self::atproto::admin_updateAccountEmail::route()
+                .handle(req)
+                .await
+        }
+        b"/com.atproto.admin.updateAccountHandle" => {
+            self::atproto::admin_updateAccountHandle::route()
+                .handle(req)
+                .await
+        }
+        b"/com.atproto.admin.updateAccountPassword" => {
+            self::atproto::admin_updateAccountPassword::route()
+                .handle(req)
+                .await
+        }
+        b"/com.proto.admin.updateSubjectStatus" => {
+            self::atproto::admin_updateSubjectStatus::route()
+                .handle(req)
+                .await
+        }
         _ => XrpcError::NotFound.to_response(),
     }
 }
