@@ -45,6 +45,11 @@ pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
                 .handle(req)
                 .await
         }
+        b"/com.atproto.admin.getInviteCodes" => {
+            self::atproto::admin_getInviteCodes::route()
+                .handle(req)
+                .await
+        }
         _ => XrpcError::NotFound.to_response(),
     }
 }

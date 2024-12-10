@@ -6,3 +6,4 @@ pub mod admin_disableInviteCodes;
 pub mod admin_enableAccountInvites;
 pub mod admin_getAccountInfo;
 pub mod admin_getAccountInfos;
+pub mod admin_getInviteCodes;
