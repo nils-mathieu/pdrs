@@ -199,31 +199,6 @@ where
 /// A wrapper around a function that implements [`Handler`].
 pub struct HandlerFn<F, In, Out>(pub F, PhantomData<fn(In) -> Out>);
 
-impl<F, Out> IntoHandler<((), Out)> for F
-where
-    F: Send + FnOnce() -> Out,
-    Out: Send + Future,
-    Out::Output: IntoResponse,
-{
-    type Handler = HandlerFn<F, (), Out>;
-
-    #[inline]
-    fn into_handler(self) -> Self::Handler {
-        HandlerFn(self, PhantomData)
-    }
-}
-
-impl<F, Out> Handler for HandlerFn<F, (), Out>
-where
-    F: Send + FnOnce() -> Out,
-    Out: Send + Future,
-    Out::Output: IntoResponse,
-{
-    fn handle(self, _req: &mut Request) -> impl Send + Future<Output = Response> {
-        async move { (self.0)().await.into_response().await }
-    }
-}
-
 macro_rules! impl_IntoHandler_for_fn {
     ( $($name:ident),* && $last_name:ident ) => {
         impl<Fn, Out, $($name,)* $last_name> IntoHandler<(($($name,)* $last_name,), Out)> for Fn
