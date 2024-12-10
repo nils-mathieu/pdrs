@@ -8,7 +8,7 @@ use {
         header::{self, HeaderValue},
         StatusCode,
     },
-    std::{net::SocketAddr, panic::AssertUnwindSafe},
+    std::panic::AssertUnwindSafe,
 };
 
 mod xrpc;
@@ -20,8 +20,8 @@ pub type Request = hyper::Request<hyper::body::Incoming>;
 pub type Response = hyper::Response<http_body_util::Full<Bytes>>;
 
 /// Handles a request and returns an appropriate response.
-pub async fn handle_request(addr: &SocketAddr, request: &Request) -> Response {
-    let fut = handle_request_inner(addr, request);
+pub async fn handle_request(request: &mut Request) -> Response {
+    let fut = handle_request_inner(request);
 
     match AssertUnwindSafe(fut).catch_unwind().await {
         Ok(response) => response,
@@ -40,13 +40,14 @@ pub async fn handle_request(addr: &SocketAddr, request: &Request) -> Response {
 /// Unlike [`handle_request`], this function always returns a [`Response`] sucessfully. If an unexpected
 /// error occurs, the function will panic. Note that panics here should be considered bugs or unlikely
 /// edge cases (such as memory running out).
-async fn handle_request_inner(_addr: &SocketAddr, request: &Request) -> Response {
-    let (uri_first_part, uri_rest) = split_uri_path(request.uri().path().as_bytes());
+async fn handle_request_inner(request: &mut Request) -> Response {
+    let uri = request.uri().clone();
+    let (uri_first_part, uri_rest) = split_uri_path(uri.path().as_bytes());
 
     match uri_first_part {
         b"" | b"/" => file(include_bytes!("index.html"), MIME_HTML),
         b"/robots.txt" => file(include_bytes!("robots.txt"), MIME_TEXT),
-        b"/xrpc" => self::xrpc::handle_request(uri_rest, request),
+        b"/xrpc" => self::xrpc::handle_request(uri_rest, request).await,
         _ => not_found(),
     }
 }
@@ -61,6 +62,13 @@ fn not_found() -> Response {
     *response.status_mut() = StatusCode::NOT_FOUND;
     response
 }
+
+// /// Creates a [`Response`] that indicates that the request was successful.
+// fn ok() -> Response {
+//     let mut response = Response::new("".into());
+//     *response.status_mut() = StatusCode::OK;
+//     response
+// }
 
 /// `text/plain; charset=utf-8` content type.
 const MIME_TEXT: HeaderValue = HeaderValue::from_static("text/plain; charset=utf-8");

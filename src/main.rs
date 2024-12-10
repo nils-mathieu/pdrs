@@ -69,9 +69,10 @@ async fn handle_connection(stream: TcpStream, addr: SocketAddr) {
     let executor = hyper_util::rt::TokioExecutor::new();
     let stream = hyper_util::rt::TokioIo::new(stream);
 
-    let service_fn =
-        move |req| async move { Ok::<_, Infallible>(self::api::handle_request(&addr, &req).await) };
-    let service = hyper::service::service_fn(service_fn);
+    let service = hyper::service::service_fn(move |mut req| async move {
+        req.extensions_mut().insert(addr);
+        Ok::<_, Infallible>(self::api::handle_request(&mut req).await)
+    });
 
     if let Err(err) = hyper_util::server::conn::auto::Builder::new(executor)
         .serve_connection_with_upgrades(stream, service)

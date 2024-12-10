@@ -1,16 +1,21 @@
 use {
+    super::handler::IntoResponse,
     crate::api::Response,
     hyper::{
         header::{self, HeaderValue},
         StatusCode,
     },
     serde::Serialize,
+    std::future::Future,
 };
 
 /// An XRPC error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum XrpcError {
     NotFound,
+    MethodNotAllowed,
+    InvalidRequest,
+    ConnectionError,
 }
 
 impl XrpcError {
@@ -18,6 +23,9 @@ impl XrpcError {
     pub fn status_code(self) -> StatusCode {
         match self {
             XrpcError::NotFound => StatusCode::NOT_FOUND,
+            XrpcError::InvalidRequest => StatusCode::BAD_REQUEST,
+            XrpcError::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
+            XrpcError::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
         }
     }
 
@@ -25,13 +33,19 @@ impl XrpcError {
     pub fn message(self) -> &'static str {
         match self {
             XrpcError::NotFound => "The requested resource was not found.",
+            XrpcError::InvalidRequest => "The input provided was invalid.",
+            XrpcError::ConnectionError => "An error occurred while communicating.",
+            XrpcError::MethodNotAllowed => "The method is not allowed.",
         }
     }
 
     /// Returns the error code that should be used for the error.
     pub fn code(self) -> &'static str {
         match self {
-            XrpcError::NotFound => "not_found",
+            XrpcError::NotFound => "NotFound",
+            XrpcError::InvalidRequest => "InvalidRequest",
+            XrpcError::ConnectionError => "ConnectionError",
+            XrpcError::MethodNotAllowed => "MethodNotAllowed",
         }
     }
 
@@ -54,6 +68,13 @@ impl XrpcError {
         let header = response.headers_mut();
         header.insert(header::CONTENT_TYPE, MIME_JSON);
         response
+    }
+}
+
+impl IntoResponse for XrpcError {
+    #[inline]
+    fn into_response(self) -> impl Send + Future<Output = Response> {
+        std::future::ready(self.to_response())
     }
 }
 
