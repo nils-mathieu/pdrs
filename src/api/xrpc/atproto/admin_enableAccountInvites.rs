@@ -1,16 +1,17 @@
 use {
     crate::api::xrpc::handler::{Handler, IntoHandler, Json, MethodPost},
+    serde::Deserialize,
     tracing::{info, instrument},
 };
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 struct Input {
     account: String,
     #[serde(default)]
     note: String,
 }
 
-#[instrument(name = "com.atproto.admin.disableAccountInvites", skip_all)]
+#[instrument(name = "com.atproto.admin.enableAccountInvites", skip_all)]
 async fn handler(_: MethodPost, input: Json<Input>) {
     info!(
         account = %input.account,
@@ -19,7 +20,7 @@ async fn handler(_: MethodPost, input: Json<Input>) {
     unimplemented!();
 }
 
-/// `com.atproto.admin.disableAccountInvites`
+/// `com.atproto.admin.enableAccountInvites`
 pub fn route() -> impl Handler {
     handler.into_handler()
 }

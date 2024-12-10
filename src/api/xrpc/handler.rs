@@ -85,6 +85,37 @@ impl FromRequestParts for MethodGet {
     }
 }
 
+/// Deserializes query parameters of a request into a `T`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Query<T>(pub T);
+
+impl<T: Send + DeserializeOwned> FromRequestParts for Query<T> {
+    fn from_request_parts(parts: &Request) -> impl Send + Future<Output = Result<Self, XrpcError>> {
+        let query = parts.uri().query().unwrap_or_default();
+        let ret = match serde_urlencoded::from_str(query) {
+            Ok(val) => Ok(Self(val)),
+            Err(_) => Err(XrpcError::InvalidRequest),
+        };
+        std::future::ready(ret)
+    }
+}
+
+impl<T> Deref for Query<T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for Query<T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 /// Types that can be extracted from a request.
 pub trait FromRequest: Sized {
     /// Extracts the type from the request.
@@ -237,6 +268,45 @@ macro_rules! impl_IntoHandler_for_fn {
                     };
 
                     (self.0)( $( $name, )* __last, ).await.into_response().await
+                }
+            }
+        }
+
+        impl<Fn, Out, $($name,)*> IntoHandler<(($($name,)*), Out, ())> for Fn
+        where
+            $($name: Send + FromRequestParts,)*
+            Fn: Send + FnOnce($($name,)*) -> Out,
+            Out: Send + Future,
+            Out::Output: IntoResponse,
+        {
+            type Handler = HandlerFn<Fn, (($($name,)*),), Out>;
+
+            #[inline]
+            fn into_handler(self) -> Self::Handler {
+                HandlerFn(self, PhantomData)
+            }
+        }
+
+        impl<Fn, Out, $($name,)*> Handler for HandlerFn<Fn, (($($name,)*),), Out>
+        where
+            $($name: Send + FromRequestParts,)*
+            Fn: Send + FnOnce($($name,)*) -> Out,
+            Out: Send + Future,
+            Out::Output: IntoResponse,
+        {
+            #[allow(non_snake_case, unused_variables)]
+            fn handle(self, req: &mut Request) -> impl Send + Future<Output = Response> {
+                async move {
+                    let result: Result<_, XrpcError> = tokio::try_join!(
+                        $( $name::from_request_parts(req), )*
+                    );
+
+                    let ($( $name, )*) = match result {
+                        Ok(( $( $name, )* )) => ( $( $name, )* ),
+                        Err(err) => return err.to_response(),
+                    };
+
+                    (self.0)( $( $name, )*).await.into_response().await
                 }
             }
         }
