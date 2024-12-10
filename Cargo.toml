@@ -3,6 +3,13 @@ name = "rpds"
 edition = "2021"
 publish = false
 
+[features]
+default = ["ns-com-atproto", "ns-app-bsky", "ns-chat-bsky"]
+
+ns-com-atproto = []
+ns-app-bsky = []
+ns-chat-bsky = []
+
 [dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
 hyper = { version = "1", features = ["client", "server", "http1", "http2"] }
@@ -29,3 +36,6 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 ] }
 memchr = "2"
 serde_urlencoded = "0.7.1"
+
+[build-dependencies]
+atrium-codegen = { git = "https://github.com/sugyan/atrium/" }
