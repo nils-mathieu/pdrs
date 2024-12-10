@@ -1,11 +1,14 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, Json, MethodPost},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, Json, MethodPost},
+        model::Did,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 struct Input {
-    account: String,
+    account: Did,
     #[serde(default)]
     note: String,
 }

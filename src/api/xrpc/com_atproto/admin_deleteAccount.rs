@@ -1,11 +1,14 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, Json, MethodPost},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, Json, MethodPost},
+        model::Did,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 struct Input {
-    did: String,
+    did: Did,
 }
 
 #[instrument(name = "com.atproto.admin.deleteAccount", skip_all)]

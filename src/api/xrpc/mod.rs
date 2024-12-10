@@ -2,6 +2,7 @@
 
 mod error;
 mod handler;
+mod model;
 
 mod com_atproto;
 

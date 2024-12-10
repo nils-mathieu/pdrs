@@ -1,16 +1,19 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, Json, MethodPost},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, Json, MethodPost},
+        model::Did,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Input {
-    recipient_did: String,
+    recipient_did: Did,
     content: String,
     #[serde(default)]
     subject: Option<String>,
-    sender_did: String,
+    sender_did: Did,
     #[serde(default)]
     comment: String,
 }

@@ -1,5 +1,8 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, MethodGet, Query},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, MethodGet, Query},
+        model::Did,
+    },
     serde::Deserialize,
     tracing::{info, instrument},
 };
@@ -7,7 +10,7 @@ use {
 #[derive(Deserialize)]
 struct Input {
     #[serde(default)]
-    did: Option<String>,
+    did: Option<Did>,
     #[serde(default)]
     uri: Option<String>,
     #[serde(default)]
@@ -17,7 +20,7 @@ struct Input {
 #[instrument(name = "com.atproto.admin.getAccountInfo", skip_all)]
 async fn handler(_: MethodGet, input: Query<Input>) {
     info!(
-        did = %input.did.as_deref().unwrap_or_default(),
+        did = ?input.did,
         uri = %input.uri.as_deref().unwrap_or_default(),
         blob = %input.blob.as_deref().unwrap_or_default(),
     );

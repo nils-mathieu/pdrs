@@ -1,11 +1,14 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, MethodGet, Query},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, MethodGet, Query},
+        model::Did,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 struct Input {
-    did: String,
+    did: Did,
 }
 
 #[instrument(name = "com.atproto.admin.getAccountInfo", skip_all)]
