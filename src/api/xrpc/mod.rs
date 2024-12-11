@@ -18,6 +18,7 @@ use {
 pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
     let (mut nsid, _) = split_uri_path(rest);
 
+    // Remove the leading slash. If the path is empty, the we return an empty slice.
     nsid = nsid.get(1..).unwrap_or_default();
 
     match nsid {
@@ -417,6 +418,9 @@ pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
                 .handle(req)
                 .await
         }
-        _ => XrpcError::NotFound.to_response(),
+        _ => {
+            let message = format!("NSID `{}` not recognized", nsid.escape_ascii());
+            XrpcError::not_found(message).to_response()
+        }
     }
 }

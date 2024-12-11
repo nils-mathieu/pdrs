@@ -6,65 +6,75 @@ use {
         StatusCode,
     },
     serde::Serialize,
-    std::future::Future,
+    std::{borrow::Cow, future::Future},
 };
 
 /// An XRPC error.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum XrpcError {
-    NotFound,
-    MethodNotAllowed,
-    InvalidRequest,
-    ConnectionError,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct XrpcError {
+    /// The HTTP status code to return.
+    pub status: StatusCode,
+    /// The error code that should be used for the error.
+    pub error: &'static str,
+    /// A message associated with the error.
+    pub message: Cow<'static, str>,
 }
 
 impl XrpcError {
-    /// Returns the status code that should be used for the error.
-    pub fn status_code(self) -> StatusCode {
-        match self {
-            XrpcError::NotFound => StatusCode::NOT_FOUND,
-            XrpcError::InvalidRequest => StatusCode::BAD_REQUEST,
-            XrpcError::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
-            XrpcError::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
+    /// A dummy error.
+    ///
+    /// Used for example when the connection is lost.
+    pub const DUMMY: Self = Self {
+        status: StatusCode::INTERNAL_SERVER_ERROR,
+        error: "",
+        message: Cow::Borrowed(""),
+    };
+
+    /// Creates an error indcating that a resource wasn't found.
+    pub fn not_found(message: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            error: "not_found",
+            message: message.into(),
         }
     }
 
-    /// Returns the description of the error.
-    pub fn message(self) -> &'static str {
-        match self {
-            XrpcError::NotFound => "The requested resource was not found.",
-            XrpcError::InvalidRequest => "The input provided was invalid.",
-            XrpcError::ConnectionError => "An error occurred while communicating.",
-            XrpcError::MethodNotAllowed => "The method is not allowed.",
+    /// Creates an error indicating that requested method wasn't
+    /// allowed.
+    pub fn method_not_allowed(message: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            status: StatusCode::METHOD_NOT_ALLOWED,
+            error: "method_not_allowed",
+            message: message.into(),
         }
     }
 
-    /// Returns the error code that should be used for the error.
-    pub fn code(self) -> &'static str {
-        match self {
-            XrpcError::NotFound => "NotFound",
-            XrpcError::InvalidRequest => "InvalidRequest",
-            XrpcError::ConnectionError => "ConnectionError",
-            XrpcError::MethodNotAllowed => "MethodNotAllowed",
+    /// Creates an error indicating that the request was not
+    /// made properly.
+    pub fn invalid_request(message: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            error: "invalid_request",
+            message: message.into(),
         }
     }
 
     /// Converts the error into a response.
-    pub fn to_response(self) -> Response {
+    pub fn to_response(&self) -> Response {
         #[derive(Serialize)]
-        struct Payload {
-            error: &'static str,
-            message: &'static str,
+        struct Payload<'a> {
+            error: &'a str,
+            message: &'a str,
         }
 
         let payload = Payload {
-            error: self.code(),
-            message: self.message(),
+            error: self.error,
+            message: self.message.as_ref(),
         };
         let payload = serde_json::to_string(&payload).unwrap();
 
         let mut response = Response::new(payload.into());
-        *response.status_mut() = self.status_code();
+        *response.status_mut() = self.status;
         let header = response.headers_mut();
         header.insert(header::CONTENT_TYPE, MIME_JSON);
         response

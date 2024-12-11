@@ -53,6 +53,16 @@ impl FromRequestParts for SocketAddr {
     }
 }
 
+/// Creates an error that indicate that the method used for the
+/// provided request was not allowed.
+fn method_not_allowed(req: &Request) -> XrpcError {
+    XrpcError::method_not_allowed(format!(
+        "Method `{}` for `{}` is not allowed",
+        req.method(),
+        req.uri(),
+    ))
+}
+
 /// Ensures that the request method is `POST`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MethodPost;
@@ -63,7 +73,7 @@ impl FromRequestParts for MethodPost {
             if parts.method() == Method::POST {
                 Ok(Self)
             } else {
-                Err(XrpcError::MethodNotAllowed)
+                Err(method_not_allowed(parts))
             }
         }
     }
@@ -79,7 +89,7 @@ impl FromRequestParts for MethodGet {
             if parts.method() == Method::GET {
                 Ok(Self)
             } else {
-                Err(XrpcError::MethodNotAllowed)
+                Err(method_not_allowed(parts))
             }
         }
     }
@@ -94,7 +104,7 @@ impl<T: Send + DeserializeOwned> FromRequestParts for Query<T> {
         let query = parts.uri().query().unwrap_or_default();
         let ret = match serde_urlencoded::from_str(query) {
             Ok(val) => Ok(Self(val)),
-            Err(_) => Err(XrpcError::InvalidRequest),
+            Err(err) => Err(XrpcError::invalid_request(err.to_string())),
         };
         std::future::ready(ret)
     }
@@ -177,7 +187,8 @@ where
     fn from_request(req: &mut Request) -> impl Send + Future<Output = Result<Self, XrpcError>> {
         async move {
             let body = read_body(req.body_mut()).await?;
-            let val: T = serde_json::from_slice(&body).map_err(|_| XrpcError::InvalidRequest)?;
+            let val: T = serde_json::from_slice(&body)
+                .map_err(|err| XrpcError::invalid_request(err.to_string()))?;
             Ok(Json(val))
         }
     }
@@ -192,7 +203,7 @@ where
 
     match body.collect().await {
         Ok(bytes) => Ok(bytes.to_bytes()),
-        Err(_err) => Err(XrpcError::ConnectionError),
+        Err(_err) => Err(XrpcError::DUMMY),
     }
 }
 
