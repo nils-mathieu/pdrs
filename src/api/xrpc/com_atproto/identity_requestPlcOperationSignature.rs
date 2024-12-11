@@ -1,14 +1,7 @@
-use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, MethodPost},
-    tracing::instrument,
-};
-
-#[instrument(name = "com.atproto.identity.requestPlcOperationSignature", skip_all)]
-async fn handler(_: MethodPost) {
-    unimplemented!();
-}
+use tracing::instrument;
 
 /// `com.atproto.identity.getPrequestPlcOperationSignature`
-pub fn route() -> impl Handler {
-    handler.into_handler()
+#[instrument(name = "com.atproto.identity.requestPlcOperationSignature", skip_all)]
+pub async fn handler() {
+    unimplemented!();
 }

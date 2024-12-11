@@ -1,7 +1,7 @@
 use {crate::api::xrpc::error::XrpcError, tracing::instrument};
 
-/// `com.atproto.admin.getSubjectStatus`
-#[instrument(name = "com.atproto.admin.getSubjectStatus", skip_all)]
+/// `com.atproto.label.queryLabels`
+#[instrument(name = "com.atproto.label.queryLabels", skip_all)]
 pub async fn handler() {
     unimplemented!();
 }

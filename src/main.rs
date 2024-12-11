@@ -1,3 +1,5 @@
+#![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
+
 use {
     std::{convert::Infallible, ffi::OsString, net::SocketAddr},
     tokio::net::TcpStream,
