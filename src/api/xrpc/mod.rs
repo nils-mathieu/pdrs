@@ -159,6 +159,12 @@ pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
                 .handle(req)
                 .await
         }
+        b"com.atproto.repo.deleteRecord" => {
+            self::com_atproto::repo_deleteRecord::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
         b"com.atproto.repo.describeRepo" => {
             self::com_atproto::repo_describeRepo::handler
                 .into_handler()
@@ -197,6 +203,216 @@ pub async fn handle_request(rest: &[u8], req: &mut Request) -> Response {
         }
         b"com.atproto.repo.uploadBlob" => {
             self::com_atproto::repo_uploadBlob::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.activateAccount" => {
+            self::com_atproto::server_activateAccount::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.checkAccountStatus" => {
+            self::com_atproto::server_checkAccountStatus::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.confirmEmail" => {
+            self::com_atproto::server_confirmEmail::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.createAccount" => {
+            self::com_atproto::server_createAccount::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.createAppPassword" => {
+            self::com_atproto::server_createAppPassword::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.createInviteCode" => {
+            self::com_atproto::server_createInviteCode::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.createInviteCodes" => {
+            self::com_atproto::server_createInviteCodes::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.createSession" => {
+            self::com_atproto::server_createSession::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.deactivateAccount" => {
+            self::com_atproto::server_deactivateAccount::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.deleteAccount" => {
+            self::com_atproto::server_deleteAccount::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.deleteSession" => {
+            self::com_atproto::server_deleteSession::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.describeServer" => {
+            self::com_atproto::server_describeServer::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.getAccountInviteCodes" => {
+            self::com_atproto::server_getAccountInviteCodes::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.getServiceAuth" => {
+            self::com_atproto::server_getServiceAuth::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.getSession" => {
+            self::com_atproto::server_getSession::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.listAppPasswords" => {
+            self::com_atproto::server_listAppPasswords::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.refreshSession" => {
+            self::com_atproto::server_refreshSession::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.requestAccountDelete" => {
+            self::com_atproto::server_requestAccountDelete::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.requestEmailConfirmation" => {
+            self::com_atproto::server_requestEmailConfirmation::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.requestEmailUpdate" => {
+            self::com_atproto::server_requestEmailUpdate::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.requestPasswordReset" => {
+            self::com_atproto::server_requestPasswordReset::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.reserveSigningKey" => {
+            self::com_atproto::server_reserveSigningKey::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.resetPassword" => {
+            self::com_atproto::server_resetPassword::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.revokeAppPassword" => {
+            self::com_atproto::server_revokeAppPassword::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.server.updateEmail" => {
+            self::com_atproto::server_updateEmail::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getBlob" => {
+            self::com_atproto::sync_getBlob::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getBlocks" => {
+            self::com_atproto::sync_getBlocks::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getLatestCommit" => {
+            self::com_atproto::sync_getLatestCommit::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getRecord" => {
+            self::com_atproto::sync_getRecord::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getRepo" => {
+            self::com_atproto::sync_getRepo::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.getRepoStatus" => {
+            self::com_atproto::sync_getRepoStatus::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.listBlobs" => {
+            self::com_atproto::sync_listBlobs::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.listRepos" => {
+            self::com_atproto::sync_listRepos::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.notifyOfUpdate" => {
+            self::com_atproto::sync_notifyOfUpdate::handler
+                .into_handler()
+                .handle(req)
+                .await
+        }
+        b"com.atproto.sync.requestCrawl" => {
+            self::com_atproto::sync_requestCrawl::handler
                 .into_handler()
                 .handle(req)
                 .await
