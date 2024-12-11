@@ -11,7 +11,12 @@ ns-app-bsky = []
 ns-chat-bsky = []
 
 [dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "signal",
+] }
 hyper = { version = "1", features = ["client", "server", "http1", "http2"] }
 hyper-util = { version = "0.1", features = [
     "client",
@@ -35,4 +40,4 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
     "std",
 ] }
 memchr = "2"
-serde_urlencoded = "0.7.1"
+serde_urlencoded = "0.7"

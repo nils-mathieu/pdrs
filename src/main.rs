@@ -1,22 +1,57 @@
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 
 use {
-    std::{convert::Infallible, ffi::OsString, net::SocketAddr},
+    std::{convert::Infallible, ffi::OsString, net::SocketAddr, time::Duration},
     tokio::net::TcpStream,
-    tracing::{error, trace},
+    tracing::{error, info, trace, warn},
 };
 
 mod api;
+mod global;
 mod panic;
 
-#[tokio::main]
-async fn main() {
+/// The glorious entry point.
+fn main() {
     tracing_subscriber::fmt()
         .with_ansi(true)
         .with_max_level(tracing::level_filters::LevelFilter::TRACE)
         .init();
     std::panic::set_hook(Box::new(self::panic::panic_hook));
-    run_server().await;
+
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap_or_else(|err| panic!("failed to initialize the async runtime: {err}"));
+
+    rt.block_on(self::global::initialize());
+    rt.block_on(self::main_async());
+
+    if rt.metrics().num_alive_tasks() > 0 {
+        info!("There are still tasks running. Waiting at most 30 seconds for them to finish.");
+    }
+
+    rt.shutdown_timeout(Duration::from_secs(30));
+}
+
+/// The entry point of the async runtime.
+async fn main_async() {
+    tokio::select!(
+        _ = run_server() => (),
+        _ = wait_for_shutdown_signal() => (),
+    );
+}
+
+/// A function that completes when the shutdown signal has been received.
+async fn wait_for_shutdown_signal() {
+    match tokio::signal::ctrl_c().await {
+        Ok(()) => {
+            info!("Received the CTRL+C signal. Shutting down the server.");
+        }
+        Err(_err) => {
+            warn!("Failed to wait for the CTRL+C signal. Using it won't gracefully shut the server down.");
+            std::future::pending().await
+        }
+    }
 }
 
 /// Runs the server to completion.
