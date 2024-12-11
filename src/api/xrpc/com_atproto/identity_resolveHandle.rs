@@ -1,11 +1,14 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, MethodGet, Query},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, MethodGet, Query},
+        model::Handle,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 struct Input {
-    handle: String,
+    handle: Handle,
 }
 
 #[instrument(name = "com.atproto.identity.resolveHandle", skip_all)]

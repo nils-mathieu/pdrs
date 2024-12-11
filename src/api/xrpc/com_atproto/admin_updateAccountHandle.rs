@@ -1,7 +1,7 @@
 use {
     crate::api::xrpc::{
         handler::{Handler, IntoHandler, Json, MethodPost},
-        model::Did,
+        model::{Did, Handle},
     },
     tracing::{info, instrument},
 };
@@ -9,7 +9,7 @@ use {
 #[derive(serde::Deserialize)]
 struct Input {
     did: Did,
-    handle: String,
+    handle: Handle,
 }
 
 #[instrument(name = "com.atproto.admin.updateAccountHandle", skip_all)]

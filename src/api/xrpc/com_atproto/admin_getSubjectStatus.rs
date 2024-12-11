@@ -1,7 +1,7 @@
 use {
     crate::api::xrpc::{
         handler::{Handler, IntoHandler, MethodGet, Query},
-        model::Did,
+        model::{AtUri, Did},
     },
     serde::Deserialize,
     tracing::{info, instrument},
@@ -12,7 +12,7 @@ struct Input {
     #[serde(default)]
     did: Option<Did>,
     #[serde(default)]
-    uri: Option<String>,
+    uri: Option<AtUri>,
     #[serde(default)]
     blob: Option<String>,
 }
@@ -21,7 +21,7 @@ struct Input {
 async fn handler(_: MethodGet, input: Query<Input>) {
     info!(
         did = ?input.did,
-        uri = %input.uri.as_deref().unwrap_or_default(),
+        uri = ?input.uri,
         blob = %input.blob.as_deref().unwrap_or_default(),
     );
     unimplemented!();

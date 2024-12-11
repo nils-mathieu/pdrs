@@ -1,5 +1,5 @@
 use {
-    memchr::{memchr, memrchr},
+    memchr::memchr,
     serde::{Deserialize, Deserializer, Serialize, Serializer},
     std::fmt::Display,
 };
@@ -62,7 +62,7 @@ where
 
 impl<T: ?Sized + AsRef<str>> Display for Did<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.as_str().fmt(f)
+        f.pad(self.as_str())
     }
 }
 
@@ -88,7 +88,7 @@ pub fn validate_did(mut bytes: &[u8]) -> bool {
     // SAFETY: The `memchr` function returned a valid index, which ensures
     // that `method_end_index` is within the bounds of `bytes`.
     let method = unsafe { bytes.get_unchecked(..method_end_index) };
-    bytes = unsafe { bytes.get_unchecked(method_end_index + 1..) };
+    bytes = unsafe { bytes.get_unchecked(method_end_index..) };
 
     #[inline]
     fn is_method_char(c: &u8) -> bool {
@@ -102,13 +102,6 @@ pub fn validate_did(mut bytes: &[u8]) -> bool {
     #[inline]
     fn is_id_char(c: u8) -> bool {
         matches!(c, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'.' | b'-' | b'_' | b':')
-    }
-
-    let Some(last_colon_index) = memrchr(b':', bytes) else {
-        return false;
-    };
-    if last_colon_index == bytes.len() - 1 {
-        return false;
     }
 
     let mut i = 0;
@@ -136,11 +129,15 @@ pub fn validate_did(mut bytes: &[u8]) -> bool {
             continue;
         }
 
-        if is_id_char(c) {
-            i += 1;
-            continue;
+        if !is_id_char(c) {
+            return false;
         }
 
+        i += 1;
+    }
+
+    // Can't end with a colon
+    if bytes.last() == Some(&b':') {
         return false;
     }
 
@@ -167,8 +164,8 @@ where
     where
         D: Deserializer<'de>,
     {
-        let inner = T::deserialize(deserializer)?;
-        Self::new(inner).map_err(serde::de::Error::custom)
+        T::deserialize(deserializer)
+            .and_then(|inner| Self::new(inner).map_err(serde::de::Error::custom))
     }
 }
 
@@ -180,4 +177,49 @@ where
     fn as_ref(&self) -> &str {
         self.as_str()
     }
+}
+
+impl<'a> TryFrom<&'a str> for Did<&'a str> {
+    type Error = DidParseError;
+
+    #[inline]
+    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl TryFrom<Box<str>> for Did<Box<str>> {
+    type Error = DidParseError;
+
+    #[inline]
+    fn try_from(value: Box<str>) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl TryFrom<String> for Did<String> {
+    type Error = DidParseError;
+
+    #[inline]
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn did_with_empty_last_component() {
+    assert!(!validate_did(b"did:example:test:"));
+}
+
+#[cfg(test)]
+#[test]
+fn did_with_consecutive_colons() {
+    assert!(!validate_did(b"did:example::::test"));
+}
+
+#[cfg(test)]
+#[test]
+fn basic_did() {
+    assert!(validate_did(b"did:example:test:awdac:sdfsdfw"));
 }

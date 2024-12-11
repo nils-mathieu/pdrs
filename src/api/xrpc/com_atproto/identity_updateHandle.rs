@@ -1,12 +1,15 @@
 use {
-    crate::api::xrpc::handler::{Handler, IntoHandler, Json, MethodPost},
+    crate::api::xrpc::{
+        handler::{Handler, IntoHandler, Json, MethodPost},
+        model::Handle,
+    },
     tracing::{info, instrument},
 };
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Input {
-    handle: String,
+    handle: Handle,
 }
 
 #[instrument(name = "com.atproto.identity.updateHandle", skip_all)]
