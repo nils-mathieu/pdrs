@@ -1,7 +1,7 @@
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 
 use {
-    std::{convert::Infallible, ffi::OsString, net::SocketAddr, time::Duration},
+    std::{convert::Infallible, ffi::OsString, net::SocketAddr, str::FromStr, time::Duration},
     tokio::net::TcpStream,
     tracing::{error, info, trace, warn},
 };
@@ -17,6 +17,12 @@ fn main() {
         .with_max_level(tracing::level_filters::LevelFilter::TRACE)
         .init();
     std::panic::set_hook(Box::new(self::panic::panic_hook));
+
+    if let Err(err) = dotenvy::dotenv() {
+        if !err.not_found() {
+            error!("Failed to load the `.env` file: {err}");
+        }
+    }
 
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -83,22 +89,41 @@ async fn run_server() {
 /// Panics if the provided hostname is invalid.
 #[track_caller]
 fn get_socket_address() -> SocketAddr {
-    let s = expect_env("RPDS_HOSTNAME");
-    let s = s
-        .to_str()
-        .unwrap_or_else(|| panic!("`RPDS_HOSTNAME` is not valid UTF-8"));
-    s.parse()
+    expect_env("RPDS_HOSTNAME")
+        .parse()
         .unwrap_or_else(|_| panic!("`RPDS_HOSTNAME` is not a valid socket address"))
 }
 
 /// Returns the value of the provided environment variable, or panics if it is
 /// missing.
 #[track_caller]
-fn expect_env(env: &str) -> OsString {
-    match std::env::var_os(env) {
-        Some(value) => value,
-        None => panic!("Environment variable `{env}` is missing"),
+fn expect_env(env: &str) -> String {
+    match dotenvy::var(env) {
+        Ok(value) => value,
+        Err(err) => panic!("Environment variable `{env}`: {err}"),
     }
+}
+
+/// Returns the value of the provided environment variable, or `None` if it is
+/// missing.
+fn try_get_env(env: &str) -> Option<String> {
+    match dotenvy::var(env) {
+        Ok(value) => Some(value),
+        Err(dotenvy::Error::EnvVar(std::env::VarError::NotPresent)) => None,
+        Err(err) => panic!("Environment variable `{env}`: {err}"),
+    }
+}
+
+/// Returns the value of the provided environment variable.
+fn try_get_and_parse_env<T>(env: &str) -> Option<T>
+where
+    T: FromStr,
+    T::Err: std::fmt::Display,
+{
+    try_get_env(env).map(|val| {
+        val.parse()
+            .unwrap_or_else(|err| panic!("Failed to parse `{env}`: {err}"))
+    })
 }
 
 /// Handles a connection from a client.
