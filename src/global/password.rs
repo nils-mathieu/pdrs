@@ -71,10 +71,6 @@ impl PasswordHasher {
 
     /// Hashes the provided password.
     pub fn hash_password(&self, password: &[u8]) -> String {
-        // Do we need to run the algorithm on a separate thread to avoid
-        // blocking all tasks running on the current one? I'm not sure how
-        // expensive `argon2` really is.
-
         let argon2 = make_argon2_engine(
             ARGON2_ALGORITHM,
             ARGON2_VERSION,
