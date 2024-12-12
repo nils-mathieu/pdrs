@@ -259,7 +259,7 @@ const fn base64_encoded_len(n: usize) -> Option<usize> {
 }
 
 #[cfg(test)]
-const DEFAULT_CONFIG: PasswordHasher = PasswordHasher {
+const TEST_CONFIG: PasswordHasher = PasswordHasher {
     parallelism: argon2::Params::DEFAULT_P_COST,
     memory_cost: argon2::Params::DEFAULT_M_COST,
     time_cost: argon2::Params::DEFAULT_T_COST,
@@ -269,7 +269,7 @@ const DEFAULT_CONFIG: PasswordHasher = PasswordHasher {
 #[cfg(test)]
 #[test]
 fn test_password_success() {
-    let config = DEFAULT_CONFIG;
+    let config = TEST_CONFIG;
     let password = b"password";
 
     let hash = config.hash_password(password);
@@ -279,7 +279,7 @@ fn test_password_success() {
 #[cfg(test)]
 #[test]
 fn test_password_failure() {
-    let config = DEFAULT_CONFIG;
+    let config = TEST_CONFIG;
     let password1 = b"testfsdf";
     let password2 = b"sdkfjcce";
 
@@ -291,7 +291,7 @@ fn test_password_failure() {
 #[cfg(test)]
 #[test]
 fn test_empty_password() {
-    let config = DEFAULT_CONFIG;
+    let config = TEST_CONFIG;
     let password = b"";
 
     let hash = config.hash_password(password);
