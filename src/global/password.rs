@@ -223,6 +223,7 @@ fn make_argon2_engine(
 /// The data saved in the database to remember the parameters that were
 /// used to hash a password.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "family")]
 enum SavedPasswordHash<'a> {
     /// The password was hashed using the Argon2 algorithm and with the following
     /// parameters.
