@@ -72,6 +72,8 @@ async fn run_server() {
         .await
         .unwrap_or_else(|err| panic!("Can't bind to `{hostname}`: {err}"));
 
+    info!("Successfully bound to `{hostname}`");
+
     loop {
         match listener.accept().await {
             Ok((stream, addr)) => {
