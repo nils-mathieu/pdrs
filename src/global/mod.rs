@@ -1,6 +1,10 @@
 //! Defines the global state of the application.
 
-use {self::database::Database, crate::expect_env, std::sync::OnceLock};
+use {
+    self::{database::Database, password::PasswordHasher},
+    crate::expect_env,
+    std::sync::OnceLock,
+};
 
 pub mod database;
 pub mod password;
@@ -11,6 +15,8 @@ pub mod password;
 /// See the freestanding functions of [this module](self) for easy
 /// access to the global state.
 pub struct GlobalState {
+    /// The password hasher responsible for hashing and verifying passwords.
+    pub password_hasher: PasswordHasher,
     /// The database instance.
     pub database: Database,
 }
@@ -21,9 +27,13 @@ static STATE: OnceLock<GlobalState> = OnceLock::new();
 /// Initializes the global state of the application.
 pub async fn initialize() {
     let database = Database::new().await;
+    let password_hasher = PasswordHasher::new();
 
     STATE
-        .set(GlobalState { database })
+        .set(GlobalState {
+            database,
+            password_hasher,
+        })
         .unwrap_or_else(|_| panic!("the global state was already initialized"));
 }
 

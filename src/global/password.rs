@@ -32,7 +32,7 @@ const ARGON2_ALGORITHM: argon2::Algorithm = argon2::Algorithm::Argon2id;
 type B64 = base64ct::Base64Unpadded;
 
 /// Defines a collection of parameters to use when hashing new passwords.
-pub struct HasherConfig {
+pub struct PasswordHasher {
     /// The p-cost of the Argon2 algorithm.
     parallelism: u32,
     /// The m-cost of the Argon2 algorithm.
@@ -43,8 +43,8 @@ pub struct HasherConfig {
     secret: Option<&'static [u8]>,
 }
 
-impl HasherConfig {
-    /// Creates a new [`HasherConfig`] object using the environment variables
+impl PasswordHasher {
+    /// Creates a new [`PasswordHasher`] object using the environment variables
     /// to configure it.
     pub fn new() -> Self {
         let memory_cost =
@@ -262,7 +262,7 @@ const fn base64_encoded_len(n: usize) -> Option<usize> {
 }
 
 #[cfg(test)]
-const DEFAULT_CONFIG: HasherConfig = HasherConfig {
+const DEFAULT_CONFIG: PasswordHasher = PasswordHasher {
     parallelism: argon2::Params::DEFAULT_P_COST,
     memory_cost: argon2::Params::DEFAULT_M_COST,
     time_cost: argon2::Params::DEFAULT_T_COST,
